@@ -8,14 +8,13 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
-//@interface RCT_EXTERN_MODULE(BackgroundTaskManager, NSObject)
-//
-//RCT_EXTERN_METHOD(startReading);
-//+ (BOOL)requiresMainQueueSetup {
-//  return YES;
-//}
-//@end
+@interface RCT_EXTERN_MODULE(BackgroundTaskManager, NSObject)
 
-@interface MyAppBridge : NSObject <RCTBridgeModule, RCTEventEmitter>
+RCT_EXTERN_METHOD(start);
+RCT_EXTERN_METHOD(cancel);
 
 @end
+//
+//@interface MyAppBridge : NSObject <RCTBridgeModule, RCTEventEmitter>
+//
+//@end

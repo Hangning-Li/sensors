@@ -16,7 +16,7 @@ const SensorScreen = () => {
   const [gyroscopeData, setGyroscopeData] = useState({});
 
   useEffect(() => {
-    BackgroundTaskManager.startReading();
+    BackgroundTaskManager.start();
 
     const a_subscription = accelerometer.subscribe((accelerometerData) =>
       setAccelerometerData(accelerometerData)
@@ -30,11 +30,13 @@ const SensorScreen = () => {
       // If it's the last subscription to accelerometer it will stop polling in the native API
       g_subscription.unsubscribe();
       a_subscription.unsubscribe();
+      BackgroundTaskManager.cancel();
     }, 1000);
     
     return () => {
       a_subscription.unsubscribe();
       g_subscription.unsubscribe();
+      BackgroundTaskManager.cancel();
     };
   }, []);
 
