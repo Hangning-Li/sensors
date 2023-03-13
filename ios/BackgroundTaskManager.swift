@@ -10,48 +10,43 @@ import UIKit
 import BackgroundTasks
 import CoreMotion
 
-let backgroundTaskIdentifier = "com.hangning.sensor.reading"
+
 
 
 @objc(BackgroundTaskManager)
 class BackgroundTaskManager : NSObject {
+  let backgroundTaskIdentifier = "com.hangning.sensorReading";
+  
   let motionManager = CMMotionManager();
+  
   @objc
   static func requiresMainQueueSetup() -> Bool {
-    return false
+    return true
   }
-//  @objc func startReading(){
-//
-//    scheduleBackgroundTask();
-//  }
   
-//  func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-//      // Enable background fetch
-//
-//      // Register background task
-//      BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
-//          // Handle the task
-//          self.handleBackgroundTask(task: task as! BGProcessingTask)
-//      }
-//      // Set up the background task request
-//      let request = BGAppRefreshTaskRequest(identifier: "com.hangning.bgtask")
-//      request.earliestBeginDate = Date(timeIntervalSinceNow: 60 * 15) // Start the task at least 15 minutes from now
-//
-//      return true
-//  }
-  
-  @objc
-  func start() {
+  @objc func startReading(){
     let task = BGProcessingTaskRequest(identifier: backgroundTaskIdentifier)
     task.requiresNetworkConnectivity = false // Set to true if your task requires network connectivity
     task.requiresExternalPower = false // Set to true if your task requires external power
 
     do {
       try BGTaskScheduler.shared.submit(task)
-      scheduleMotionUpdates()
+       scheduleMotionUpdates()
     } catch {
       print("Unable to submit task: \(error.localizedDescription)")
     }
+  }
+  
+  func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+      // Enable background fetch
+
+      // Register background task
+      BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
+          // Handle the task
+          self.handleBackgroundTask(task: task as! BGProcessingTask)
+      }
+    
+      return true
   }
   
   @objc
@@ -86,11 +81,12 @@ class BackgroundTaskManager : NSObject {
       }
     }
   }
+
   
   @objc
   func handleBackgroundTask(task: BGProcessingTask) {
     scheduleMotionUpdates()
-
+    
     task.expirationHandler = {
       self.motionManager.stopAccelerometerUpdates()
       self.motionManager.stopGyroUpdates()
@@ -104,7 +100,7 @@ class BackgroundTaskManager : NSObject {
 //      let request = BGProcessingTaskRequest(identifier: backgroundTaskIdentifier)
 //      request.requiresExternalPower = false
 //      request.requiresNetworkConnectivity = false
-//      request.earliestBeginDate = Date(timeIntervalSinceNow: 60)
+//      request.earliestBeginDate = Date(timeIntervalSinceNow: 60 * 1)
 //
 //      do {
 //          try BGTaskScheduler.shared.submit(request)
