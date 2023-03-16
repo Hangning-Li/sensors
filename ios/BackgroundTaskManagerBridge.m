@@ -11,6 +11,7 @@
 @interface RCT_EXTERN_MODULE(BackgroundTaskManager, NSObject)
 
 RCT_EXTERN_METHOD(startReading);
+RCT_EXTERN_METHOD(cancel);
 
 @end
 //
