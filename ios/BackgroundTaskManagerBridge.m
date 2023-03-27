@@ -14,7 +14,3 @@ RCT_EXTERN_METHOD(startReading);
 RCT_EXTERN_METHOD(cancel);
 
 @end
-//
-//@interface MyAppBridge : NSObject <RCTBridgeModule, RCTEventEmitter>
-//
-//@end

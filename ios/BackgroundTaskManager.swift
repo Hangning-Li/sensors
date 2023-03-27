@@ -12,14 +12,14 @@ import CoreMotion
 import OSLog
 
 @objc(BackgroundTaskManager)
-class BackgroundTaskManager : NSObject {
+class BackgroundTaskManager : NSObject, UIApplicationDelegate {
   let backgroundTaskIdentifier = "com.hangning.sensorReading";
   
   let motionManager = CMMotionManager();
   
   @objc
   static func requiresMainQueueSetup() -> Bool {
-    return true
+    return false
   }
   
   @objc
@@ -29,11 +29,13 @@ class BackgroundTaskManager : NSObject {
     }
   }
   
-  @available(iOS 13.0, *)
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+      
       // Register background task
+      print("Entered background state")
+      
       registerBackgroundTask()
-        
+      
       if #available(iOS 14.0, *) {
         Logger().info("[BGTASK] Perform bg processing \(self.backgroundTaskIdentifier)")
       }
@@ -41,7 +43,6 @@ class BackgroundTaskManager : NSObject {
       return true
   }
   
-  @available(iOS 13.0, *)
   func applicationDidEnterBackground(_ application: UIApplication) {
     scheduleBackgroundProcessing()
     print("App did enter background")
@@ -57,7 +58,6 @@ class BackgroundTaskManager : NSObject {
     BGTaskScheduler.shared.cancelAllTaskRequests()
   }
   
-  @available(iOS 13.0, *)
   func registerBackgroundTask() {
     BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
       // Handle the task
@@ -112,7 +112,6 @@ class BackgroundTaskManager : NSObject {
     
   }
 
-  @available(iOS 13.0, *)
   func scheduleBackgroundProcessing() {
     // Read sensor data for 100 seconds
 //    DispatchQueue.main.asyncAfter(deadline: .now() + 100) {
@@ -140,3 +139,5 @@ class BackgroundTaskManager : NSObject {
   }
   
 }
+
+
