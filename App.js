@@ -4,19 +4,93 @@ import {
   setUpdateIntervalForType,
   SensorTypes
 } from "react-native-sensors";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component } from "react";
 import { View, StyleSheet, Text } from 'react-native';
 
-import { NativeModules, NativeEventEmitter } from 'react-native';
+// import { NativeModules, NativeEventEmitter, DeviceEventEmitter } from 'react-native';
+import BackgroundFetch from 'react-native-background-fetch';
 
-const {BackgroundTaskManager} = NativeModules;
+const id = "com.hangning.sensorReading";
 
 const SensorScreen = () => {
+
   const [accelerometerData, setAccelerometerData] = useState({});
   const [gyroscopeData, setGyroscopeData] = useState({});
 
+  // Start the background worker
+  const initBackgroundFetch = async () => {
+
+    const status = await BackgroundFetch.configure({
+      minimumFetchInterval: 15, // 15 minutes
+      //Android options
+      forceAlarmManager: false,     // <-- Set true to bypass JobScheduler.
+      stopOnTerminate: false,
+      startOnBoot: true,
+      requiredNetworkType: BackgroundFetch.NETWORK_TYPE_NONE, // Default
+      requiresCharging: false,      // Default
+      requiresDeviceIdle: false,    // Default
+      requiresBatteryNotLow: false, // Default
+      requiresStorageNotLow: false  // Default 
+    },  async () => {
+      console.log('- BackgroundFetch start');
+      let a_subscription = accelerometer.subscribe((accelerometerData) => {
+        setAccelerometerData(accelerometerData);
+        console.log('- BackgroundFetch accelerometer: ', accelerometerData);
+      })
+      // console.log('- BackgroundFetch accelerometer: ', ) // <-- don't see this
+      // console.log('- BackgroundFetch gyroscope: ', ) // <-- don't see this
+      BackgroundFetch.finish(id);
+    }, (error) => {
+      console.log('[js] RNBackgroundFetch failed to start')
+    });
+
+    console.log('[ RNBF STATUS ]', status)
+
+  }
+
+  
+
+  // handleTask is called periodically when RNBF triggers an event
+  const handleTask = async (taskId) => {
+
+    console.log('[ RNBF TASK ID ]', taskId)
+
+    // DO BACKGROUND WORK HERE
+    const a_subscription = accelerometer.subscribe((accelerometerData) => {
+      setAccelerometerData(accelerometerData);
+      // console.log(accelerometerData);
+    })
+    const g_subscription = gyroscope.subscribe((gyroscopeData) => {
+      setAccelerometerData(gyroscopeData);
+      // console.log(gyroscopeData);
+    })
+
+    // This MUST be called in order to signal to the OS that your task is complete
+    BackgroundFetch.finish(taskId)
+
+  }
+
+  const onTimeout = async () => {
+
+    // The timeout function is called when the OS signals that the task has reached its maximum execution time.
+
+    // ADD CLEANUP WORK HERE (IF NEEDED)
+
+    BackgroundFetch.finish(id)
+
+  }
+
+
   useEffect(() => {
-    BackgroundTaskManager.start();
+    initBackgroundFetch()
+
+    BackgroundFetch.scheduleTask({
+      taskId: id,
+      delay: 60 * 2 * 1000 //  two minutes (milliseconds)
+    });
+    
+
+    BackgroundFetch.start();
 
     const a_subscription = accelerometer.subscribe((accelerometerData) =>
       setAccelerometerData(accelerometerData)
@@ -26,17 +100,19 @@ const SensorScreen = () => {
       setGyroscopeData(gyroscopeData)
     )
 
+    console.log(BackgroundFetch.status);
+
     setTimeout(() => {
-      // If it's the last subscription to accelerometer it will stop polling in the native API
+      BackgroundFetch.stop(id);
       g_subscription.unsubscribe();
       a_subscription.unsubscribe();
-      BackgroundTaskManager.cancel();
+      // BackgroundTaskManager.cancel();
     }, 1000);
-    
+
     return () => {
       a_subscription.unsubscribe();
       g_subscription.unsubscribe();
-      BackgroundTaskManager.cancel();
+      // BackgroundTaskManager.cancel();
     };
   }, []);
 
